@@ -65,16 +65,13 @@ func (s *registroService) emitirWS(gid int) {
 		return
 	}
 
-	var pct float64
-	if estac.CapacidadTotal > 0 {
-		pct = float64(estac.CapacidadOcupada) / float64(estac.CapacidadTotal) * 100
-	}
-
 	color := "VERDE"
 	switch {
-	case pct >= 100:
+	case estac.CapacidadLibre <= 0:
 		color = "ROJO"
-	case pct >= 75:
+	case estac.CapacidadLibre <= 3:
+		color = "NARANJA"
+	case estac.CapacidadLibre <= 5:
 		color = "AMARILLO"
 	}
 

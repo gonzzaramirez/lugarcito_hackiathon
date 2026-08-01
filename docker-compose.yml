@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: lugarcito-api
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ENVIRONMENT=production
+      - DATABASE_PATH=/app/data/lugarcito.db
+    volumes:
+      - lugarcito_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      args:
+        # Cambiá VPS_IP por la IP o dominio de tu VPS
+        API_URL: http://VPS_IP:8080/api/v1
+        WS_URL: ws://VPS_IP:8080/ws
+    container_name: lugarcito-front
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  lugarcito_data:

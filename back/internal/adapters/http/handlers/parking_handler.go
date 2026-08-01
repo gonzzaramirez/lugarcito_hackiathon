@@ -64,11 +64,7 @@ func (h *EstacionamientoHandler) Cercanos(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			continue
 		}
-		var pct float64
-		if item.CapacidadTotal > 0 {
-			pct = float64(item.CapacidadOcupada) / float64(item.CapacidadTotal) * 100
-		}
-		color := colorEstado(pct)
+		color := colorEstado(item.CapacidadLibre)
 
 		props := map[string]interface{}{
 			"gid":               item.GID,
@@ -113,11 +109,7 @@ func renderGeoJSON(w http.ResponseWriter, estacionamientos []domain.Estacionamie
 		if err != nil {
 			continue
 		}
-		var pct float64
-		if e.CapacidadTotal > 0 {
-			pct = float64(e.CapacidadOcupada) / float64(e.CapacidadTotal) * 100
-		}
-		color := colorEstado(pct)
+		color := colorEstado(e.CapacidadLibre)
 
 		props := map[string]interface{}{
 			"gid":               e.GID,
@@ -158,11 +150,13 @@ func parseGeojson(raw string) (interface{}, error) {
 	return geom, nil
 }
 
-func colorEstado(pct float64) string {
+func colorEstado(libres int) string {
 	switch {
-	case pct >= 100:
+	case libres <= 0:
 		return "ROJO"
-	case pct >= 75:
+	case libres <= 3:
+		return "NARANJA"
+	case libres <= 5:
 		return "AMARILLO"
 	default:
 		return "VERDE"

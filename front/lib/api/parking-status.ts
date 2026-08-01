@@ -73,6 +73,8 @@ function colorToStatus(color: string): ParkingStatus {
   switch (color) {
     case "ROJO":
       return "FULL";
+    case "NARANJA":
+      return "ORANGE";
     case "AMARILLO":
       return "LOW";
     case "VERDE":

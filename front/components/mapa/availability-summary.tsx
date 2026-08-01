@@ -6,15 +6,17 @@ import type { ParkingSegment, ParkingStatus } from "@/lib/data/parking-status";
 export interface AvailabilityCounts {
   available: number;
   low: number;
+  orange: number;
   full: number;
   unknown: number;
 }
 
 export function countAvailability(segments: ParkingSegment[]): AvailabilityCounts {
-  const counts: AvailabilityCounts = { available: 0, low: 0, full: 0, unknown: 0 };
+  const counts: AvailabilityCounts = { available: 0, low: 0, orange: 0, full: 0, unknown: 0 };
   for (const segment of segments) {
     if (segment.status === "AVAILABLE") counts.available += 1;
     else if (segment.status === "LOW") counts.low += 1;
+    else if (segment.status === "ORANGE") counts.orange += 1;
     else if (segment.status === "FULL") counts.full += 1;
     else counts.unknown += 1;
   }
@@ -22,10 +24,11 @@ export function countAvailability(segments: ParkingSegment[]): AvailabilityCount
 }
 
 const ITEMS: { key: keyof AvailabilityCounts; label: string; status: ParkingStatus }[] = [
-  { key: "available", label: "Disponible", status: "AVAILABLE" },
-  { key: "low", label: "Pocos lugares", status: "LOW" },
-  { key: "full", label: "Completo", status: "FULL" },
-  { key: "unknown", label: "Sin información", status: "UNKNOWN" },
+  { key: "available", label: "Libre",   status: "AVAILABLE" },
+  { key: "low",      label: "Casi",    status: "LOW" },
+  { key: "orange",   label: "Crítico", status: "ORANGE" },
+  { key: "full",     label: "Lleno",   status: "FULL" },
+  { key: "unknown",  label: "S/D",     status: "UNKNOWN" },
 ];
 
 export function AvailabilitySummary({ counts }: { counts: AvailabilityCounts }) {
@@ -34,7 +37,7 @@ export function AvailabilitySummary({ counts }: { counts: AvailabilityCounts }) 
       <p className="mb-2.5 text-xs font-medium tracking-wide text-[#A1A1AA] uppercase">
         Disponibilidad
       </p>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-1">
         {ITEMS.map((item) => (
           <div key={item.key} className="flex flex-col items-center gap-1">
             <span

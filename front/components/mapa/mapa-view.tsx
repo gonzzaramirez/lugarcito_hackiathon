@@ -173,11 +173,11 @@ export function MapaView() {
             capacity
           );
           const occupied = capacity - available;
-          const pct = capacity > 0 ? (occupied / capacity) * 100 : 0;
 
           let status: ParkingStatus;
-          if (pct >= 100) status = "FULL";
-          else if (pct >= 75) status = "LOW";
+          if (available <= 0) status = "FULL";
+          else if (available <= 3) status = "ORANGE";
+          else if (available <= 5) status = "LOW";
           else status = "AVAILABLE";
 
           return { ...segment, available, occupied, status };

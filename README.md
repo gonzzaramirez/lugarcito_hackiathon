@@ -1,38 +1,82 @@
-# HackIAthon Devlights 2026 - Grupo 01
+# Lugarcito
 
-Repositorio oficial del Grupo 01 para la HackIAthon Devlights 2026.
+**Gestión de estacionamiento medido en tiempo real.**
 
-## Instrucciones Git
+Plataforma que transforma el estacionamiento medido tradicional en una red de datos vivos. Empleados en la calle registran entradas y salidas desde el celular, y el sistema refleja la disponibilidad al instante en un mapa público.
 
-- Clona este repositorio con las credenciales HTTPS proporcionadas.
-- Trabaja en la rama `main`.
-- Commitea y pushea tu progreso regularmente.
+---
 
-## Credenciales Git (HTTPS CodeCommit)
+## Qué problema resuelve
 
-| Campo | Valor |
-|-------|-------|
-| URL del repo | `https://git-codecommit.us-east-1.amazonaws.com/v1/repos/hakIA-grupo-01` |
-| Usuario Git | `user-hakIA-grupo-01-at-760050153031` |
-| Password Git | `SZKIX+CRl55zx5mNyUH7GaleUHRRvilD1JXgGMquBuva3VcS4+M2kkiIt1U=` |
+El estacionamiento medido tradicional es opaco: el vecino no sabe dónde hay lugar, el empleado anota en papel, y la municipalidad no tiene datos para tomar decisiones. Lugarcito digitaliza las tres puntas:
 
-## Base de Datos PostgreSQL
+| Actor | Antes | Con Lugarcito |
+|---|---|---|
+| **Vecino** | Da vueltas buscando lugar | Abre el mapa y ve dónde hay verde |
+| **Empleado** | Planilla de papel | App móvil: toca «Entró» / «Salió» |
+| **Admin** | Sin visibilidad | Dashboard con 168 cuadras en tiempo real |
 
-| Campo | Valor |
-|-------|-------|
-| Host | `hackiathon-db-equipos.c4tuk66uuqg9.us-east-1.rds.amazonaws.com` |
-| Puerto | `5432` |
-| Base de datos | `db_hakIA_grupo_01` |
-| Usuario | `user_grupo_01` |
-| Password | `6RkXQh6CyMM4N9Mox9s2` |
-| SSL | `require` |
+---
 
-URI de conexion:
+## Vistas de la aplicación
 
+### 🗺️ Mapa público (`/`)
+Mapa con todas las cuadras de estacionamiento medido coloreadas según disponibilidad en tiempo real:
+- 🟢 **Verde** — 6 o más lugares libres
+- 🟡 **Amarillo** — 4 o 5 lugares (casi lleno)
+- 🟠 **Naranja** — 1 a 3 lugares (crítico)
+- 🔴 **Rojo** — sin lugares
+
+Se actualiza solo, sin refrescar. Usa la ubicación del dispositivo para centrar el mapa.
+
+### 📊 Dashboard admin (`/dashboard`)
+Tabla con las 168 cuadras, estadísticas de ocupación, y actualizaciones en vivo vía WebSocket. Permite crear empleados, asignarles cuadras y turnos.
+
+### 📱 App del empleado (`/empleado`)
+El empleado ve solo las cuadras que tiene asignadas para su turno. Toca «Entró» cuando un auto estaciona y «Salió» cuando se va. La disponibilidad se actualiza al instante para todos.
+
+---
+
+## Stack técnico
+
+| Capa | Tecnología |
+|---|---|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript, Tailwind, Leaflet |
+| Backend | Go 1.24, SQLite (modernc.org/sqlite, sin CGO), JWT |
+| Tiempo real | WebSocket nativo (gorilla/websocket) |
+| Datos | 210 tramos geo-referenciados de Corrientes (CSV → GeoJSON) |
+
+---
+
+## Cómo levantar
+
+```bash
+# 1. Backend (puerto 8080)
+cd back
+go run ./cmd/api
+
+# 2. Frontend (puerto 3000)
+cd front
+npm install
+npm run dev
 ```
-postgresql://user_grupo_01:6RkXQh6CyMM4N9Mox9s2@hackiathon-db-equipos.c4tuk66uuqg9.us-east-1.rds.amazonaws.com:5432/db_hakIA_grupo_01?sslmode=require
-```
 
-AVISO: La base de datos solo es accesible desde las oficinas de Devlights.
+**Acceso:** `http://localhost:3000`
 
-Buena suerte!
+**Credenciales default:** `admin` / `admin`
+
+---
+
+## Endpoints principales
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `POST` | `/api/v1/auth/login` | Login (JWT) |
+| `GET` | `/api/v1/estacionamientos/mapa` | GeoJSON con todas las cuadras |
+| `POST` | `/api/v1/users` | Crear empleado (admin) |
+| `POST` | `/api/v1/asignaciones` | Asignar cuadras a empleado |
+| `GET` | `/api/v1/asignaciones/mi-turno` | Cuadras del empleado logueado |
+| `POST` | `/api/v1/registros/entrada` | Registrar entrada de vehículo |
+| `POST` | `/api/v1/registros/salida` | Registrar salida de vehículo |
+| `GET` | `/ws` | WebSocket (actualizaciones en vivo) |

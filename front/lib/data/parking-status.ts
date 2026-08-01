@@ -4,7 +4,7 @@
 // back/data/Estacionamiento-medido.csv, converted to [lat, lon]).
 // TODO(frontend): remove this file once the backend API is connected.
 
-export type ParkingStatus = "AVAILABLE" | "LOW" | "FULL" | "UNKNOWN";
+export type ParkingStatus = "AVAILABLE" | "LOW" | "ORANGE" | "FULL" | "UNKNOWN";
 
 export interface ParkingSegment {
   id: number;
