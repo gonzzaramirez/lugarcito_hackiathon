@@ -1,5 +1,5 @@
-# Build Stage — Go 1.24, sin CGO (modernc.org/sqlite es Go puro)
-FROM golang:1.24-alpine AS builder
+# Build Stage — Go 1.25 (go.mod lo requiere), sin CGO (modernc.org/sqlite es Go puro)
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
