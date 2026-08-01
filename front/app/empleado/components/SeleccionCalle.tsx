@@ -31,21 +31,20 @@ export function SeleccionCalle() {
   return (
     <div className="min-h-screen bg-slate-200 sm:p-4 md:p-8 lg:p-12 flex justify-center items-start">
       <main className="w-full max-w-md min-h-screen sm:min-h-0 sm:h-auto bg-slate-50 flex flex-col select-none touch-manipulation pb-10 sm:rounded-3xl sm:shadow-2xl overflow-hidden">
-        
+
         {/* Header */}
         <header className="bg-slate-800 text-white py-4 px-6 flex justify-between items-center sticky top-0 z-10 shadow-md">
           <div className="font-bold text-xl tracking-tight flex items-center gap-2">
-            <span className="w-3 h-3 bg-emerald-400 rounded-full"></span>
             Lugarcito
           </div>
-          <div className="text-xs bg-slate-700 px-3 py-1 rounded-full font-medium text-slate-300">
+          {/* <div className="text-xs bg-slate-700 px-3 py-1 rounded-full font-medium text-slate-300">
             Selector
-          </div>
+          </div> */}
         </header>
 
         <div className="p-6">
           <h1 className="text-2xl font-black text-slate-800 mb-2">Selecciona tu calle</h1>
-          <p className="text-slate-500 mb-6 text-sm">Elige en qué cuadra vas a trabajar hoy para comenzar a gestionar los espacios.</p>
+          <p className="text-slate-500 mb-6 text-sm">Elige qué cuadra gestionar.</p>
 
           <div className="flex flex-col gap-4">
             {data.map((calle) => {
