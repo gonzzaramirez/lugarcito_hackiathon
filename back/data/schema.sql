@@ -97,6 +97,6 @@ CREATE INDEX IF NOT EXISTS idx_usuarios_role ON usuarios(role_id);
 CREATE INDEX IF NOT EXISTS idx_calles_nombre ON calles(nombre);
 CREATE INDEX IF NOT EXISTS idx_estac_calle_principal ON estacionamientos(calle_principal_id);
 CREATE INDEX IF NOT EXISTS idx_asignaciones_emp_fecha ON asignaciones_empleados(empleado_id, fecha, estado);
-CREATE INDEX IF NOT EXISTS idx_registros_patente ON registros_estacionamiento(patente, estado);
 CREATE INDEX IF NOT EXISTS idx_registros_gid_estado ON registros_estacionamiento(estacionamiento_gid, estado);
+
 

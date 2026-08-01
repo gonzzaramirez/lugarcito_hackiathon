@@ -10,11 +10,20 @@ services:
       - "8080:8080"
     environment:
       - PORT=8080
-      - ENVIRONMENT=development
+      - ENVIRONMENT=production
       - ALLOW_ORIGINS=*
+      - DATABASE_PATH=/app/data/lugarcito.db
+    volumes:
+      # Persiste la DB SQLite entre reinicios de Docker.
+      # El CSV se mantiene en el volumen para que el seeder lo encuentre.
+      - lugarcito_data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+
+volumes:
+  lugarcito_data:
+    driver: local
