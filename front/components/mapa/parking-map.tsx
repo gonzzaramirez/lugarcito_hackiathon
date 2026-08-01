@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import {
-  Circle,
   MapContainer,
   Marker,
   Polyline,
@@ -27,7 +26,6 @@ interface ParkingMapProps {
   bestId: number | null;
   /** Segment selected by the user (thicker stroke). */
   selectedId: number | null;
-  maxRadius: number;
   locating: boolean;
   onMapClick: (lat: number, lon: number) => void;
   onSegmentClick: (segment: ParkingSegment) => void;
@@ -58,7 +56,6 @@ export function ParkingMap({
   segments,
   bestId,
   selectedId,
-  maxRadius,
   locating,
   onMapClick,
   onSegmentClick,
@@ -68,7 +65,7 @@ export function ParkingMap({
     <div className="relative h-full w-full">
       <MapContainer
         center={center}
-        zoom={15}
+        zoom={16}
         zoomControl={false}
         className="h-full w-full"
       >
@@ -85,7 +82,7 @@ export function ParkingMap({
           const { color } = statusMeta(segment.status);
           const isBest = segment.id === bestId;
           const isSelected = segment.id === selectedId;
-          const weight = isSelected ? 13 : 9;
+          const weight = isSelected ? 8 : 5;
 
           return (
             <div key={segment.id}>
@@ -94,7 +91,7 @@ export function ParkingMap({
                   positions={segment.coordinates}
                   pathOptions={{
                     color,
-                    weight: 16,
+                    weight: 10,
                     opacity: 0.25,
                     lineCap: "round",
                     lineJoin: "round",
@@ -120,20 +117,6 @@ export function ParkingMap({
             </div>
           );
         })}
-
-        {userLocation && (
-          <Circle
-            center={userLocation}
-            radius={maxRadius}
-            pathOptions={{
-              color: "#3B82F6",
-              fillColor: "#3B82F6",
-              fillOpacity: 0.08,
-              weight: 1.5,
-              dashArray: "6, 8",
-            }}
-          />
-        )}
 
         {userLocation && (
           <Marker position={userLocation} icon={createUserIcon()} />

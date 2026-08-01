@@ -20,7 +20,6 @@ import {
 } from "@/lib/data/parking-status";
 import { getLiveClient, type WsStatus } from "@/lib/ws/client";
 import { AvailabilitySummary, countAvailability } from "./availability-summary";
-import { BottomNav } from "./bottom-nav";
 import { BottomSheet, type NearbyItem } from "./bottom-sheet";
 
 const ParkingMap = dynamic(() => import("./parking-map").then((m) => m.ParkingMap), {
@@ -136,6 +135,26 @@ export function MapaView() {
     };
   }, []);
 
+  // Auto-localizar al cargar la página: usa la ubicación real del dispositivo.
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location: [number, number] = [
+          position.coords.latitude,
+          position.coords.longitude,
+        ];
+        setUserLocation(location);
+        setMapCenter(location);
+      },
+      () => {
+        // Fallback silencioso: se queda en el centro por defecto
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
   // Suscripción WebSocket: actualiza disponibilidad y colores en tiempo real
   // sobre el mapa, sin necesidad de refrescar la página.
   useEffect(() => {
@@ -228,7 +247,6 @@ export function MapaView() {
             segments={segments}
             bestId={best?.id ?? null}
             selectedId={selectedSegment?.id ?? null}
-            maxRadius={MAX_RADIUS}
             locating={locating}
             onMapClick={handleMapClick}
             onSegmentClick={handleSegmentClick}
@@ -243,9 +261,7 @@ export function MapaView() {
           /> */}
         </div>
 
-        <div className="relative z-[1100] shrink-0">
-          <BottomNav />
-        </div>
+        <div className="relative z-[1100] shrink-0" />
       </div>
     </div>
   );

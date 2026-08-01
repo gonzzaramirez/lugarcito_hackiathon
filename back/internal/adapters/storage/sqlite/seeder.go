@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -116,95 +115,30 @@ func Seed(db *sql.DB, csvPath string) error {
 	return nil
 }
 
-// seedUsuarios crea los usuarios base del sistema (admin + empleado demo,
-// con las credenciales documentadas en back/README.md) y una asignación de
-// ejemplo para hoy (gids 24 y 154). Es idempotente: no duplica en reinicios.
+// seedUsuarios crea el usuario admin por defecto (admin / admin).
+// Es idempotente: no duplica en reinicios.
 func seedUsuarios(db *sql.DB) error {
 	var userCount int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM usuarios`).Scan(&userCount); err != nil {
 		return err
 	}
 
-	var adminID, empleadoID int64
-
 	if userCount == 0 {
-		adminHash, err := HashPassword("password123")
+		adminHash, err := HashPassword("admin")
 		if err != nil {
 			return fmt.Errorf("hash admin: %w", err)
 		}
-		empleadoHash, err := HashPassword("empPassword123")
-		if err != nil {
-			return fmt.Errorf("hash empleado: %w", err)
-		}
 
-		tx, err := db.Begin()
-		if err != nil {
-			return fmt.Errorf("iniciar tx usuarios: %w", err)
-		}
-		defer func() {
-			if err != nil {
-				_ = tx.Rollback()
-			}
-		}()
-
-		if _, err := tx.Exec(`
+		if _, err := db.Exec(`
 			INSERT OR IGNORE INTO usuarios (role_id, nombre_usuario, email, password_hash, nombre_completo, telefono, activo)
-			VALUES (1, 'admin_rodrigo', 'admin@lugarcito.com', ?, 'Rodrigo Administrador', '+543794000001', 1)`,
+			VALUES (1, 'admin', 'admin@lugarcito.com', ?, 'Administrador', '', 1)`,
 			adminHash); err != nil {
 			return fmt.Errorf("crear admin: %w", err)
 		}
 
-		if _, err := tx.Exec(`
-			INSERT OR IGNORE INTO usuarios (role_id, nombre_usuario, email, password_hash, nombre_completo, telefono, activo)
-			VALUES (2, 'empleado_juan', 'juan@lugarcito.com', ?, 'Juan Pérez', '+543794000000', 1)`,
-			empleadoHash); err != nil {
-			return fmt.Errorf("crear empleado: %w", err)
-		}
-
-		if err := tx.QueryRow(`SELECT id FROM usuarios WHERE nombre_usuario = 'admin_rodrigo'`).Scan(&adminID); err != nil {
-			return fmt.Errorf("leer admin: %w", err)
-		}
-		if err := tx.QueryRow(`SELECT id FROM usuarios WHERE nombre_usuario = 'empleado_juan'`).Scan(&empleadoID); err != nil {
-			return fmt.Errorf("leer empleado: %w", err)
-		}
-
-		if err := tx.Commit(); err != nil {
-			return fmt.Errorf("commit usuarios: %w", err)
-		}
-		log.Printf("[seeder] ✅ Usuarios base creados: admin_rodrigo / empleado_juan")
-	} else {
-		if err := db.QueryRow(`SELECT id FROM usuarios WHERE nombre_usuario = 'empleado_juan'`).Scan(&empleadoID); err != nil {
-			return nil // el equipo manejó los usuarios a mano, no inventar nada
-		}
+		log.Printf("[seeder] ✅ Usuario admin creado: admin / admin")
 	}
 
-	// Asignación demo: solo si todavía no existe ninguna en el sistema.
-	var asigCount int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM asignaciones_empleados`).Scan(&asigCount); err != nil {
-		return err
-	}
-	if asigCount > 0 {
-		return nil
-	}
-
-	var adminIDFinal int64
-	if err := db.QueryRow(`SELECT id FROM usuarios WHERE role_id = 1 ORDER BY id LIMIT 1`).Scan(&adminIDFinal); err != nil {
-		return fmt.Errorf("leer admin para asignación: %w", err)
-	}
-
-	fecha := time.Now().Format("2006-01-02")
-	for _, gid := range []int{24, 154} {
-		_, err := db.Exec(`
-			INSERT INTO asignaciones_empleados (empleado_id, estacionamiento_gid, asignado_por_id, fecha, hora_inicio, hora_fin, estado)
-			SELECT ?, ?, ?, ?, '08:00', '14:00', 'ACTIVO'
-			WHERE NOT EXISTS (
-				SELECT 1 FROM asignaciones_empleados WHERE empleado_id = ? AND estacionamiento_gid = ? AND fecha = ?)`,
-			empleadoID, gid, adminIDFinal, fecha, empleadoID, gid, fecha)
-		if err != nil {
-			return fmt.Errorf("crear asignación gid=%d: %w", gid, err)
-		}
-	}
-	log.Printf("[seeder] ✅ Asignación demo creada: empleado_juan → gids 24,154 (hoy %s)", fecha)
 	return nil
 }
 
@@ -226,25 +160,19 @@ func upsertCalle(tx *sql.Tx, cache map[string]int64, nombre string) (int64, erro
 	return id, nil
 }
 
-// derivarNombreCalle genera un nombre legible a partir de la altura y el número de garage.
-// Ejemplo: altura=601, garage=5 → "Calle 600 (bloque 5)"
-func derivarNombreCalle(altura, garage string) string {
+// derivarNombreCalle genera un nombre a partir de la altura.
+// Ejemplo: altura=601 → "Altura 600" (referencia estándar argentina).
+// Si no hay altura, usa el gid como fallback.
+func derivarNombreCalle(altura, _ string) string {
 	if altura == "" {
-		if garage != "" {
-			return fmt.Sprintf("Calle sin número (bloque %s)", garage)
-		}
-		return "Calle sin número"
+		return "Sin altura"
 	}
 	altNum, err := strconv.Atoi(altura)
 	if err != nil {
-		return fmt.Sprintf("Calle %s", altura)
+		return fmt.Sprintf("Altura %s", altura)
 	}
-	// Redondear a la centena inferior para agrupar cuadras
 	base := (altNum / 100) * 100
-	if garage != "" {
-		return fmt.Sprintf("Calle %d (bloque %s)", base, garage)
-	}
-	return fmt.Sprintf("Calle %d", base)
+	return fmt.Sprintf("Altura %d", base)
 }
 
 // makeIdx construye un mapa nombre_columna → índice.
