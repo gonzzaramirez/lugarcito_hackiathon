@@ -15,8 +15,10 @@ import {
 import {
   CORRIENTES_CENTER,
   type ParkingSegment,
+  type ParkingStatus,
   type ParkingStatusResponse,
 } from "@/lib/data/parking-status";
+import { getLiveClient } from "@/lib/ws/client";
 import { AvailabilitySummary, countAvailability } from "./availability-summary";
 import { BottomNav } from "./bottom-nav";
 import { BottomSheet, type NearbyItem } from "./bottom-sheet";
@@ -130,6 +132,43 @@ export function MapaView() {
     void loadParkingStatus();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  // Suscripción WebSocket: actualiza disponibilidad y colores en tiempo real
+  // sobre el mapa, sin necesidad de refrescar la página.
+  useEffect(() => {
+    const client = getLiveClient();
+
+    const unsubscribe = client.subscribe((message) => {
+      if (message.type !== "estacionamiento.update") return;
+
+      setSegments((prev) =>
+        prev.map((segment) => {
+          if (segment.id !== message.payload.estacionamientoId) return segment;
+
+          const available = Math.min(
+            Math.max(message.payload.disponibles, 0),
+            segment.capacity
+          );
+          const occupied = segment.capacity - available;
+          const pct = segment.capacity > 0 ? (occupied / segment.capacity) * 100 : 0;
+
+          let status: ParkingStatus;
+          if (pct >= 100) status = "FULL";
+          else if (pct >= 75) status = "LOW";
+          else status = "AVAILABLE";
+
+          return { ...segment, available, occupied, status };
+        })
+      );
+    });
+
+    client.connect();
+
+    return () => {
+      unsubscribe();
+      client.disconnect();
     };
   }, []);
 

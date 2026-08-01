@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IEstacionamiento } from '../types';
 import { estacionamientoApi } from '../services/api';
+import { getLiveClient } from '@/lib/ws/client';
 
 export function useEstacionamiento(id: string) {
   const [data, setData] = useState<IEstacionamiento | null>(null);
@@ -35,6 +36,36 @@ export function useEstacionamiento(id: string) {
     
     return () => {
       isMounted = false;
+    };
+  }, [id]);
+
+  // Suscripción WebSocket: actualiza lugaresDisponibles en tiempo real
+  // cuando otro empleado o el backend modifican este mismo tramo.
+  useEffect(() => {
+    const numericId = Number(id);
+    if (isNaN(numericId)) return;
+
+    const client = getLiveClient();
+
+    const unsubscribe = client.subscribe((message) => {
+      if (message.type !== 'estacionamiento.update') return;
+      if (message.payload.estacionamientoId !== numericId) return;
+
+      setData((prev) => {
+        if (!prev) return prev;
+        const clamped = Math.min(
+          Math.max(message.payload.disponibles, 0),
+          prev.capacidadMaxima
+        );
+        return { ...prev, lugaresDisponibles: clamped };
+      });
+    });
+
+    client.connect();
+
+    return () => {
+      unsubscribe();
+      client.disconnect();
     };
   }, [id]);
 
