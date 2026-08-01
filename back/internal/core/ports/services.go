@@ -23,6 +23,7 @@ type CalleService interface {
 // EstacionamientoService gestiona los casos de uso de tramos.
 type EstacionamientoService interface {
 	ObtenerMapa() ([]domain.Estacionamiento, error)
+	ObtenerCercanos(lat, lng, radioKm float64) ([]domain.EstacionamientoConDistancia, error)
 }
 
 // AsignacionService gestiona los casos de uso de asignaciones.

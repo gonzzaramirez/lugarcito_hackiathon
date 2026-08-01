@@ -324,8 +324,10 @@ CREATE TABLE IF NOT EXISTS registros_estacionamiento (
 
 ---
 
-### 6. Mapa en Vivo (VISITANTES)
-#### `GET /api/v1/estacionamientos/mapa`
+### 6. Mapa en Vivo y Cercanía (VISITANTES)
+
+#### A. Obtener Todo el Mapa GeoJSON
+- **HTTP Method:** `GET /api/v1/estacionamientos/mapa`
 - **Response (`200 OK`):**
 ```json
 {
@@ -348,7 +350,48 @@ CREATE TABLE IF NOT EXISTS registros_estacionamiento (
         "capacidad_total": 17,
         "capacidad_ocupada": 6,
         "capacidad_libre": 11,
-        "porcentaje_ocupacion": 35.29,
+        "ocupacion_texto": "6 de 17",
+        "estado_color": "VERDE"
+      }
+    }
+  ]
+}
+```
+
+#### B. Filtrar por Ubicación del Usuario y Radio (Km)
+- **HTTP Method:** `GET /api/v1/estacionamientos/cercanos?lat=-27.4647&lng=-58.8428&radio=1.5`
+- **Parámetros URL:**
+  - `lat`: Latitud del usuario (obligatorio)
+  - `lng`: Longitud del usuario (obligatorio)
+  - `radio`: Radio de búsqueda en kilómetros (opcional, por defecto `1.0` km)
+- **Response (`200 OK`):**
+```json
+{
+  "type": "FeatureCollection",
+  "usuario_lat": -27.4647,
+  "usuario_lng": -58.8428,
+  "radio_km": 1.5,
+  "total_hallados": 1,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-58.8428521442654, -27.4647615146858],
+          [-58.841536470083, -27.46485514135]
+        ]
+      },
+      "properties": {
+        "gid": 24,
+        "calle_principal": { "id": 1, "nombre": "Pellegrini" },
+        "calle_paralela_1": { "id": 2, "nombre": "San Martín" },
+        "calle_paralela_2": { "id": 3, "nombre": "Bolívar" },
+        "capacidad_total": 17,
+        "capacidad_ocupada": 6,
+        "capacidad_libre": 11,
+        "ocupacion_texto": "6 de 17",
+        "distancia_km": "0.052",
         "estado_color": "VERDE"
       }
     }
@@ -358,22 +401,33 @@ CREATE TABLE IF NOT EXISTS registros_estacionamiento (
 
 ---
 
-
 ## 🔌 Eventos WebSocket en Tiempo Real
 
 - **URL:** `ws://localhost:8080/ws`
+
+El WebSocket emite la información completa del tramo (incluyendo ubicación y calles) para que el frontend actualice el mapa en vivo sin hacer peticiones adicionales:
 
 ```json
 {
   "type": "estacionamiento_actualizado",
   "payload": {
     "gid": 24,
+    "calle_principal": { "id": 1, "nombre": "Pellegrini" },
+    "calle_paralela_1": { "id": 2, "nombre": "San Martín" },
+    "calle_paralela_2": { "id": 3, "nombre": "Bolívar" },
     "capacidad_total": 17,
     "capacidad_ocupada": 6,
     "capacidad_libre": 11,
-    "porcentaje_ocupacion": 35.29,
+    "ocupacion_texto": "6 de 17",
     "estado_color": "VERDE",
-    "updated_at": "2026-08-01T11:35:00Z"
+    "geometria": {
+      "type": "LineString",
+      "coordinates": [
+        [-58.8428521442654, -27.4647615146858],
+        [-58.841536470083, -27.46485514135]
+      ]
+    },
+    "updated_at": "2026-08-01T12:48:00Z"
   }
 }
 ```
