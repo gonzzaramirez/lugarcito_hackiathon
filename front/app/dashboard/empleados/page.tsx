@@ -68,7 +68,8 @@ export default function EmpleadosPage() {
   const handleAsignar = useCallback(
     async (empleadoId: number, estacionamientoIds: number[]) => {
       try {
-        const actualizado = await asignarEmpleado(empleadoId, estacionamientoIds);
+        const turno = empleados.find((e) => e.id === empleadoId)?.turno;
+        const actualizado = await asignarEmpleado(empleadoId, estacionamientoIds, turno);
         setEmpleados((prev) =>
           prev.map((empleado) => (empleado.id === empleadoId ? actualizado : empleado))
         );
@@ -78,7 +79,7 @@ export default function EmpleadosPage() {
         toast.error("No se pudo actualizar la asignación");
       }
     },
-    []
+    [empleados]
   );
 
   return (

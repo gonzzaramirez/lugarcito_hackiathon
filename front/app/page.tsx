@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { MapaView } from "@/components/mapa/mapa-view";
 
 export default function Home() {
-  redirect("/dashboard");
+  return <MapaView />;
 }

@@ -2,7 +2,11 @@ import type { Empleado, Turno } from "../data/empleados";
 import { EMPLEADOS } from "../data/empleados";
 import { httpGet, httpPost } from "./client";
 
-const EMPLEADOS_ENDPOINT = "/empleados";
+const USERS_ENDPOINT = "/users";
+
+/** Default password for employees created from the dashboard form
+ *  (the backend requires a password; the form does not collect one). */
+const DEFAULT_PASSWORD = "Password123!";
 
 export interface EmpleadoInput {
   nombre: string;
@@ -14,10 +18,45 @@ export interface EmpleadoInput {
   estacionamientoIds: number[];
 }
 
+interface UsuarioBackend {
+  id: number;
+  role_id: number;
+  role_nombre: string;
+  nombre_usuario: string;
+  nombre_completo: string;
+  email: string;
+  telefono: string | null;
+  activo: boolean | number;
+  created_at: string;
+}
+
+/** Splits "Nombre Apellido" into the app's nombre/apellido fields. */
+function splitNombreCompleto(nombreCompleto: string): { nombre: string; apellido: string } {
+  const parts = nombreCompleto.trim().split(/\s+/);
+  const [nombre = nombreCompleto, ...rest] = parts;
+  return { nombre, apellido: rest.join(" ") };
+}
+
+/** Maps a backend user to the app's Empleado row model. */
+export function usuarioToEmpleado(usuario: UsuarioBackend): Empleado {
+  const { nombre, apellido } = splitNombreCompleto(usuario.nombre_completo);
+  return {
+    id: usuario.id,
+    nombre,
+    apellido,
+    dni: usuario.nombre_usuario,
+    telefono: usuario.telefono ?? "",
+    email: usuario.email,
+    turno: "MAÑANA",
+    activo: !!usuario.activo,
+    estacionamientoIds: [],
+  };
+}
+
 export async function getEmpleados(): Promise<Empleado[]> {
   try {
-    // Attempt the real request first; falls back to seed data until the backend exists.
-    return await httpGet<Empleado[]>(EMPLEADOS_ENDPOINT);
+    const usuarios = await httpGet<UsuarioBackend[]>(`${USERS_ENDPOINT}?role_id=2`);
+    return usuarios.map(usuarioToEmpleado);
   } catch {
     return EMPLEADOS;
   }
@@ -25,9 +64,16 @@ export async function getEmpleados(): Promise<Empleado[]> {
 
 export async function createEmpleado(input: EmpleadoInput): Promise<Empleado> {
   try {
-    return await httpPost<Empleado>(EMPLEADOS_ENDPOINT, input);
+    const usuario = await httpPost<UsuarioBackend>(USERS_ENDPOINT, {
+      role_id: 2,
+      nombre_usuario: input.dni,
+      email: input.email || `${input.dni}@empleado.lugarcito.com`,
+      password: DEFAULT_PASSWORD,
+      nombre_completo: `${input.nombre} ${input.apellido}`.trim(),
+      telefono: input.telefono,
+    });
+    return usuarioToEmpleado(usuario);
   } catch {
-    // Mock fallback: simulate the server creating the record.
     const nuevo: Empleado = {
       id: EMPLEADOS.reduce((max, empleado) => Math.max(max, empleado.id), 0) + 1,
       ...input,

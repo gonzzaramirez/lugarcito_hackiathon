@@ -28,13 +28,15 @@ API Backend en **Go (Arquitectura Hexagonal)** con persistencia en **SQLite** y 
 │   └── schema.sql                  # Script DDL de inicialización para SQLite
 ├── internal/
 │   ├── core/
-│   │   ├── domain/                 # Entidades del negocio
-│   │   ├── ports/                  # Contratos de interfaces
-│   │   └── services/               # Lógica de aplicación
+│   │   ├── domain/                 # Entidades del negocio (Usuario, Calle, Estacionamiento, etc.)
+│   │   ├── ports/                  # Contratos de interfaces (Repositories, Services, WS)
+│   │   └── services/               # Lógica de aplicación y casos de uso
 │   └── adapters/
-│       ├── http/                   # Handlers REST HTTP
-│       ├── storage/sqlite/         # Adaptador de persistencia SQLite
+│       ├── http/                   # Handlers REST HTTP y Middlewares
+│       ├── storage/sqlite/         # Adaptador de persistencia SQLite y Seeder
 │       └── ws/                     # Hub y clientes WebSocket
+├── scripts/
+│   └── test_endpoints.py          # Script de pruebas de integración para la API y WebSocket
 ├── Dockerfile
 ├── docker-compose.yml
 └── go.mod
@@ -237,6 +239,24 @@ CREATE TABLE IF NOT EXISTS registros_estacionamiento (
 }
 ```
 
+#### `GET /api/v1/users`
+- **Header:** `Authorization: Bearer <ADMIN_TOKEN>`
+- **Response (`200 OK`):**
+```json
+[
+  {
+    "id": 1,
+    "role_id": 1,
+    "role_nombre": "ADMIN",
+    "nombre_usuario": "admin_rodrigo",
+    "email": "admin@lugarcito.com",
+    "nombre_completo": "Rodrigo Admin",
+    "activo": 1,
+    "created_at": "2026-08-01T11:00:00Z"
+  }
+]
+```
+
 ---
 
 ### 4. Asignaciones de Empleados (ADMIN)
@@ -437,9 +457,15 @@ El WebSocket emite la información completa del tramo (incluyendo ubicación y c
 ## 🚀 Ejecución Local y con Docker
 
 ```bash
-# Correr en local con Go
+# 1. Correr la aplicación en local con Go
 go run cmd/api/main.go
 
-# Correr con Docker Compose
+# 2. Correr con Docker Compose
 docker-compose up --build
+
+# 3. Ejecutar pruebas unitarias de servicios
+go test -v ./...
+
+# 4. Ejecutar pruebas de integración automatizadas contra la API (requiere servidor corriendo)
+python3 scripts/test_endpoints.py
 ```

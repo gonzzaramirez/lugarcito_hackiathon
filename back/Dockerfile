@@ -1,38 +1,55 @@
 # Build Stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-bullseye AS builder
 
 WORKDIR /app
 
-# Install ca-certificates and git if needed
-RUN apk add --no-go --no-cache ca-certificates git
+# go-sqlite3 requiere CGO y un compilador C
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency definition files
+# Dependencias Go
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy application source code
+# Código fuente
 COPY . .
 
-# Build statically linked binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o api ./cmd/api/main.go
+# Build con CGO habilitado (requerido por go-sqlite3)
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-w -s" -o api ./cmd/api/main.go
 
 # Production Stage
-FROM alpine:3.20
+FROM debian:bullseye-slim
 
 WORKDIR /app
 
-# Add non-root system user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Librerías C de runtime necesarias para sqlite3
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy CA certs and binary from builder
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Usuario no-root
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
+# Binario compilado
 COPY --from=builder /app/api /app/api
 
+# Datos: schema SQL + CSV de estacionamientos para el seeder
+# El CSV NO se elimina — el seeder lo usa en cada primer inicio
+COPY --from=builder /app/data /app/data
+
+# Volumen para persistir la base de datos SQLite entre reinicios
+VOLUME ["/app/data"]
+
+RUN chown -R appuser:appgroup /app
 USER appuser
 
 EXPOSE 8080
 
 ENV PORT=8080
 ENV ENVIRONMENT=production
+ENV DATABASE_PATH=/app/data/lugarcito.db
 
 CMD ["/app/api"]
