@@ -160,18 +160,17 @@ export function MapaView() {
   return (
     <div className="h-dvh bg-[#09090B] text-[#FAFAFA]">
       <div className="relative mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-[#27272A] px-2">
-          <Button type="button" variant="ghost" size="icon" aria-label="Menú">
+        {/*     <Button type="button" variant="ghost" size="icon" aria-label="Menú">
             <Menu className="size-5" />
-          </Button>
-          <h1 className="text-base font-semibold">Estacionamiento</h1>
-          <Button type="button" variant="ghost" size="icon" aria-label="Filtros">
+          </Button> */}
+        {/*  <h1 className="text-base font-semibold">Estacionamiento</h1> */}
+        {/* <Button type="button" variant="ghost" size="icon" aria-label="Filtros">
             <SlidersHorizontal className="size-5" />
-          </Button>
-        </header>
+          </Button> */}
+
 
         <div className="shrink-0 p-4 pb-3">
-          <div className="relative">
+          {/* <div className="relative">
             <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#A1A1AA]" />
             <Input
               type="search"
@@ -193,7 +192,7 @@ export function MapaView() {
                 <LocateFixed className="size-4" />
               )}
             </Button>
-          </div>
+          </div> */}
         </div>
 
         <AvailabilitySummary counts={counts} />
@@ -211,13 +210,13 @@ export function MapaView() {
             onSegmentClick={handleSegmentClick}
             onLocate={handleLocate}
           />
-          <BottomSheet
+          {/* <BottomSheet
             best={best}
             selected={selectedSegment}
             nearby={nearby}
             counts={counts}
             onRoute={handleRoute}
-          />
+          /> */}
         </div>
 
         <div className="relative z-[1100] shrink-0">
