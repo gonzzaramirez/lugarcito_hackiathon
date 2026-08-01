@@ -3,6 +3,9 @@
 // Endpoints that require authentication read the JWT from the session
 // (lib/api/auth.ts) and send it as a Bearer token.
 
+// En desarrollo: http://localhost:8080/api/v1 (desde .env.local)
+// En producción con Traefik: ""  — peticiones relativas al mismo dominio
+// (Traefik rutea /api/* al backend internamente).
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 export function getAuthToken(): string | null {

@@ -1,10 +1,23 @@
 // WebSocket endpoint configuration.
 //
-// Conecta al backend Go en ws://localhost:8080/ws por defecto.
-// Para desarrollo sin backend, seteá NEXT_PUBLIC_USE_MOCK_WS=true
-// y el simulador local (lib/ws/mock.ts) alimenta la UI.
+// En desarrollo: ws://localhost:8080/ws (desde .env.local)
+// En producción con Traefik: se deriva automáticamente de window.location
+// (mismo host, protocolo wss:// si es HTTPS).
+// Para desarrollo sin backend, seteá NEXT_PUBLIC_USE_MOCK_WS=true.
 
-export const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8080/ws";
+function buildWsUrl(): string {
+  if (process.env.NEXT_PUBLIC_WS_URL) {
+    return process.env.NEXT_PUBLIC_WS_URL;
+  }
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host}/ws`;
+  }
+  // Fallback SSR / build time
+  return "ws://localhost:8080/ws";
+}
+
+export const WS_URL = buildWsUrl();
 
 export const USE_MOCK_WS = process.env.NEXT_PUBLIC_USE_MOCK_WS === "true";
 
