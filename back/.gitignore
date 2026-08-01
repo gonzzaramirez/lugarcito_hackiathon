@@ -1,0 +1,19 @@
+# Binary
+api
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test / Coverage
+*.test
+*.out
+coverage.txt
+
+# Vendor / IDE / Temp
+vendor/
+.idea/
+.vscode/
+.DS_Store
+tmp/
