@@ -67,12 +67,10 @@ export function MapaView() {
 
   const handleMapClick = useCallback(
     (lat: number, lon: number) => {
+      // El click en el mapa NO cambia la ubicación: la ubi es siempre la real
       setSelectedSegment(null);
-      setUserLocation([lat, lon]);
-      setMapCenter([lat, lon]);
-      void fetchRecommendations(lat, lon);
     },
-    [fetchRecommendations]
+    []
   );
 
   const handleSegmentClick = useCallback((segment: ParkingSegment) => {
@@ -147,13 +145,14 @@ export function MapaView() {
         ];
         setUserLocation(location);
         setMapCenter(location);
+        void fetchRecommendations(location[0], location[1]);
       },
       () => {
         // Fallback silencioso: se queda en el centro por defecto
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }, []);
+  }, [fetchRecommendations]);
 
   // Suscripción WebSocket: actualiza disponibilidad y colores en tiempo real
   // sobre el mapa, sin necesidad de refrescar la página.

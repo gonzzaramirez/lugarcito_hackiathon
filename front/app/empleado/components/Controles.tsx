@@ -15,6 +15,7 @@ export function Controles({ onEntrada, onSalida, canEntrar, canSalir }: Controle
         disabled={!canEntrar}
         className={`
           w-full py-6 rounded-2xl text-2xl font-bold uppercase tracking-wide transition-all duration-200 active:scale-95 shadow-md
+          select-none touch-manipulation
           ${canEntrar 
             ? 'bg-red-500 text-white active:bg-red-600 hover:bg-red-500' 
             : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'}
@@ -28,6 +29,7 @@ export function Controles({ onEntrada, onSalida, canEntrar, canSalir }: Controle
         disabled={!canSalir}
         className={`
           w-full py-6 rounded-2xl text-2xl font-bold uppercase tracking-wide transition-all duration-200 active:scale-95 shadow-md
+          select-none touch-manipulation
           ${canSalir 
             ? 'bg-emerald-500 text-white active:bg-emerald-600 hover:bg-emerald-500' 
             : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'}
