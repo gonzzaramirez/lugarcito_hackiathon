@@ -46,18 +46,21 @@ func migrate(db *sql.DB) error {
 
 // seedIfEmpty ejecuta el seeder CSV solo si la tabla estacionamientos está vacía.
 // Así es idempotente: en reinicios de Docker no reimporta si los datos ya están.
+// También crea los usuarios base (admin/empleado) y una asignación de ejemplo.
 func seedIfEmpty(db *sql.DB) error {
 	var count int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM estacionamientos`).Scan(&count); err != nil {
 		return err
 	}
-	if count > 0 {
-		return nil // ya tiene datos, no hacer nada
+	if count == 0 {
+		if _, err := os.Stat(defaultCSVPath); os.IsNotExist(err) {
+			return fmt.Errorf("CSV no encontrado en %s", defaultCSVPath)
+		}
+
+		if err := Seed(db, defaultCSVPath); err != nil {
+			return err
+		}
 	}
 
-	if _, err := os.Stat(defaultCSVPath); os.IsNotExist(err) {
-		return fmt.Errorf("CSV no encontrado en %s", defaultCSVPath)
-	}
-
-	return Seed(db, defaultCSVPath)
+	return seedUsuarios(db)
 }

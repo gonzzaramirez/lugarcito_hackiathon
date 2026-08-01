@@ -1,5 +1,8 @@
 // WebSocket protocol types for the real-time estacionamiento feed.
-// TODO(frontend): align field names with the backend WS payload once it lands.
+// The Go backend emits { type: "estacionamiento_actualizado", payload } with
+// gid + capacidad_* fields; the local mock simulator emits
+// { type: "estacionamiento.update", payload: { estacionamientoId, disponibles } }.
+// Both are normalized here into a single EstacionamientoUpdate shape.
 
 /** Availability update for a single metered parking block. */
 export interface EstacionamientoUpdate {
@@ -8,6 +11,18 @@ export interface EstacionamientoUpdate {
   disponibles: number;
   /** Epoch milliseconds when the change was recorded. */
   timestamp: number;
+}
+
+/** Raw payload shape emitted by the Go backend over /ws. */
+export interface EstacionamientoActualizadoPayload {
+  gid: number;
+  calle_principal?: { id: number; nombre: string } | null;
+  capacidad_total: number;
+  capacidad_ocupada: number;
+  capacidad_libre: number;
+  ocupacion_texto: string;
+  estado_color: string;
+  updated_at?: string;
 }
 
 export type WsMessage =
@@ -29,6 +44,20 @@ export function parseWsMessage(raw: string | ArrayBuffer | Blob): WsMessage | nu
     const data = JSON.parse(raw) as { type?: unknown; payload?: unknown; message?: unknown };
 
     switch (data.type) {
+      case "estacionamiento_actualizado": {
+        const payload = data.payload as Partial<EstacionamientoActualizadoPayload>;
+        if (typeof payload?.gid !== "number" || typeof payload?.capacidad_libre !== "number") {
+          return null;
+        }
+        return {
+          type: "estacionamiento.update",
+          payload: {
+            estacionamientoId: payload.gid,
+            disponibles: payload.capacidad_libre,
+            timestamp: payload.updated_at ? Date.parse(payload.updated_at) : Date.now(),
+          },
+        };
+      }
       case "estacionamiento.update": {
         const payload = data.payload as Partial<EstacionamientoUpdate>;
         if (

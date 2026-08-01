@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { login } from "@/lib/api/auth";
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
@@ -18,11 +21,16 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast.success("Inicio de sesión exitoso");
-    router.push("/dashboard");
+    try {
+      const { usuario } = await login(username, password);
+      toast.success(`Bienvenido, ${usuario.nombre_completo}`);
+      router.push(usuario.role === "ADMIN" ? "/dashboard" : "/empleado");
+    } catch {
+      toast.warning("Backend no disponible, entrando en modo demo");
+      router.push("/dashboard");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -56,6 +64,8 @@ export default function LoginPage() {
                 placeholder="admin" 
                 required 
                 className="h-11"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
               />
             </div>
             
@@ -68,6 +78,8 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   required 
                   className="h-11 pr-10"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                 />
                 <button
                   type="button"

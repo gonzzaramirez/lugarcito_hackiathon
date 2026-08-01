@@ -1,7 +1,7 @@
 import { IEstacionamiento } from '../types';
 
 // Simulamos una base de datos en memoria con múltiples calles
-let mockData: IEstacionamiento[] = [
+const mockData: IEstacionamiento[] = [
   {
     id: 'est-001',
     nombre: 'Calle San Martín',

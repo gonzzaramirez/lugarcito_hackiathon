@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IEstacionamiento } from '../types';
-import { estacionamientoApi } from '../services/mockApi';
+import { estacionamientoApi } from '../services/api';
 
 export function useEstacionamiento(id: string) {
   const [data, setData] = useState<IEstacionamiento | null>(null);

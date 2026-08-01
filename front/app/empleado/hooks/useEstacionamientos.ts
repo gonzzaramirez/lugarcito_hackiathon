@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { IEstacionamiento } from '../types';
-import { estacionamientoApi } from '../services/mockApi';
+import { estacionamientoApi } from '../services/api';
 
 export function useEstacionamientos() {
   const [data, setData] = useState<IEstacionamiento[]>([]);
