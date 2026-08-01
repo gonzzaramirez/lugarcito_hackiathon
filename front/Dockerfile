@@ -9,11 +9,12 @@ RUN npm ci
 COPY . .
 
 # ARGs de build: permiten configurar la URL del backend en la imagen.
-# Ejemplo: docker build --build-arg API_URL=http://mi-vps:8080/api/v1
-ARG API_URL=http://localhost:8080/api/v1
-ARG WS_URL=ws://localhost:8080/ws
-ENV NEXT_PUBLIC_API_URL=${API_URL}
-ENV NEXT_PUBLIC_WS_URL=${WS_URL}
+# Dokploy pasa las variables de entorno como build args con su mismo nombre.
+# Ejemplo: NEXT_PUBLIC_API_URL=https://lugarcito-backgo-xxx.sslip.io/api/v1
+ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+ARG NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

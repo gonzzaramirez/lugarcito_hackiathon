@@ -29,9 +29,9 @@ services:
       context: ./front
       dockerfile: Dockerfile
       args:
-        # Vacío = URLs relativas (Traefik rutea /api/* y /ws al back en el mismo dominio)
-        API_URL: ""
-        WS_URL: ""
+        # URLs del backend (Dokploy genera subdominio sslip.io por servicio)
+        NEXT_PUBLIC_API_URL: http://TU_IP_O_DOMINIO:8080/api/v1
+        NEXT_PUBLIC_WS_URL: ws://TU_IP_O_DOMINIO:8080/ws
     container_name: lugarcito-front
     environment:
       - PORT=3000
