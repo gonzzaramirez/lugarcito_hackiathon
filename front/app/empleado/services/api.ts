@@ -42,8 +42,8 @@ interface RegistroResponse {
   capacidad_libre: number;
 }
 
-/** Trackea el registro_id de cada tramo para poder dar la salida después. */
-const registrosActivos = new Map<number, number>();
+/** Pila de registros activos por gid. Cada entrada pushea, cada salida popea. */
+const registrosActivos = new Map<number, number[]>();
 
 /** Caché del último estado conocido de cada tramo (para conservar nombre/capacidad). */
 const tramosCache = new Map<number, IEstacionamiento>();
@@ -107,9 +107,12 @@ export const estacionamientoApi = {
       const data = await httpPost<RegistroResponse>('/registros/entrada', {
         estacionamiento_gid: Number(id),
       });
-      registrosActivos.set(data.estacionamiento_gid, data.id);
+      const gid = data.estacionamiento_gid;
+      const pila = registrosActivos.get(gid) ?? [];
+      pila.push(data.id);
+      registrosActivos.set(gid, pila);
       return tramoActualizado(
-        data.estacionamiento_gid,
+        gid,
         data.capacidad_libre,
         data.capacidad_ocupada + data.capacidad_libre
       );
@@ -119,21 +122,30 @@ export const estacionamientoApi = {
   },
 
   registrarSalida: async (id: string): Promise<IEstacionamiento | null> => {
-    const registroId = registrosActivos.get(Number(id));
+    const gid = Number(id);
+    const pila = registrosActivos.get(gid);
+    const registroId = pila?.pop();
     if (!registroId) {
       return mockApi.registrarSalida(id);
+    }
+    // Si la pila quedó vacía, limpiamos la entrada del mapa
+    if (pila && pila.length === 0) {
+      registrosActivos.delete(gid);
     }
     try {
       const data = await httpPost<RegistroResponse>('/registros/salida', {
         registro_id: registroId,
       });
-      registrosActivos.delete(data.estacionamiento_gid);
       return tramoActualizado(
         data.estacionamiento_gid,
         data.capacidad_libre,
         data.capacidad_ocupada + data.capacidad_libre
       );
     } catch {
+      // Devolver el registro_id a la pila si falló la API
+      const restaurada = registrosActivos.get(gid) ?? [];
+      restaurada.push(registroId);
+      registrosActivos.set(gid, restaurada);
       return mockApi.registrarSalida(id);
     }
   },
