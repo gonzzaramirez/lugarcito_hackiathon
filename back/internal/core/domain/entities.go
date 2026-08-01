@@ -45,6 +45,11 @@ type Estacionamiento struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
+type EstacionamientoConDistancia struct {
+	Estacionamiento
+	DistanciaKm float64 `json:"distancia_km"`
+}
+
 type AsignacionEmpleado struct {
 	ID                  int       `json:"id"`
 	EmpleadoID          int       `json:"empleado_id"`

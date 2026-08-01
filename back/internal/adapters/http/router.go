@@ -8,21 +8,52 @@ import (
 	"github.com/gonzzaramirez/lugarcito-back/internal/core/ports"
 )
 
-func NewRouter(msgService ports.MessageService, hub *ws.Hub) http.Handler {
+func NewRouter(
+	authSvc ports.AuthService,
+	usuarioSvc ports.UsuarioService,
+	calleSvc ports.CalleService,
+	estacSvc ports.EstacionamientoService,
+	asigSvc ports.AsignacionService,
+	registroSvc ports.RegistroService,
+	hub *ws.Hub,
+) http.Handler {
 	mux := http.NewServeMux()
 
-	msgHandler := handlers.NewMessageHandler(msgService)
+	authH := handlers.NewAuthHandler(authSvc)
+	usuarioH := handlers.NewUsuarioHandler(usuarioSvc)
+	calleH := handlers.NewCalleHandler(calleSvc)
+	estacH := handlers.NewEstacionamientoHandler(estacSvc)
+	asigH := handlers.NewAsignacionHandler(asigSvc)
+	registroH := handlers.NewRegistroHandler(registroSvc)
 
-	// Health Check
+	// Health
 	mux.HandleFunc("GET /health", handlers.HealthCheck)
 
-	// WebSocket Endpoint
+	// WebSocket (público - mapa en vivo)
 	mux.HandleFunc("GET /ws", ws.Handler(hub))
 
-	// REST API Endpoints (Go 1.22+ routing syntax)
-	mux.HandleFunc("POST /api/v1/messages", msgHandler.Create)
-	mux.HandleFunc("GET /api/v1/messages", msgHandler.List)
-	mux.HandleFunc("GET /api/v1/messages/{id}", msgHandler.GetByID)
+	// Auth
+	mux.HandleFunc("POST /api/v1/auth/login", authH.Login)
+
+	// Calles (admin crea, público lista)
+	mux.HandleFunc("GET /api/v1/calles", calleH.List)
+	mux.HandleFunc("POST /api/v1/calles", handlers.RequireRole(authSvc, "ADMIN", calleH.Create))
+
+	// Usuarios (solo admin)
+	mux.HandleFunc("POST /api/v1/users", handlers.RequireRole(authSvc, "ADMIN", usuarioH.Create))
+	mux.HandleFunc("GET /api/v1/users", handlers.RequireRole(authSvc, "ADMIN", usuarioH.List))
+
+	// Estacionamientos - mapa en vivo (público) y búsqueda por cercanía
+	mux.HandleFunc("GET /api/v1/estacionamientos/mapa", estacH.Mapa)
+	mux.HandleFunc("GET /api/v1/estacionamientos/cercanos", estacH.Cercanos)
+
+	// Asignaciones
+	mux.HandleFunc("POST /api/v1/asignaciones", handlers.RequireRole(authSvc, "ADMIN", asigH.Asignar))
+	mux.HandleFunc("GET /api/v1/asignaciones/mi-turno", handlers.RequireAuth(authSvc, asigH.MiTurno))
+
+	// Registros entrada/salida (solo empleados autenticados)
+	mux.HandleFunc("POST /api/v1/registros/entrada", handlers.RequireAuth(authSvc, registroH.Entrada))
+	mux.HandleFunc("POST /api/v1/registros/salida", handlers.RequireAuth(authSvc, registroH.Salida))
 
 	return corsMiddleware(mux)
 }

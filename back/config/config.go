@@ -9,6 +9,7 @@ type Config struct {
 	Port         string
 	Environment  string
 	AllowOrigins string
+	DatabasePath string
 }
 
 func Load() *Config {
@@ -16,6 +17,7 @@ func Load() *Config {
 		Port:         getEnv("PORT", "8080"),
 		Environment:  getEnv("ENVIRONMENT", "development"),
 		AllowOrigins: getEnv("ALLOW_ORIGINS", "*"),
+		DatabasePath: getEnv("DATABASE_PATH", "data/lugarcito.db"),
 	}
 }
 
