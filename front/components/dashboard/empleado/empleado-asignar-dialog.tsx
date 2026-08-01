@@ -50,7 +50,7 @@ export function EmpleadoAsignarDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[calc(100vh-4rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Asignar estacionamientos</DialogTitle>
           <DialogDescription>

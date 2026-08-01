@@ -217,11 +217,11 @@ export function EmpleadoForm({ estacionamientos, onSubmit, onCancel }: EmpleadoF
         </FieldContent>
       </Field>
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Cancelar
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
           {isSubmitting ? "Guardando..." : "Crear empleado"}
         </Button>
       </div>

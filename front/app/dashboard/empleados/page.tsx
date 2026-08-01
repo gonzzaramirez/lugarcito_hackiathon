@@ -127,7 +127,7 @@ export default function EmpleadosPage() {
       )}
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg md:max-w-xl max-h-[calc(100vh-4rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nuevo empleado</DialogTitle>
             <DialogDescription>
