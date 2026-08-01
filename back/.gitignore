@@ -1,5 +1,5 @@
 # Binary
-api
+/api
 *.exe
 *.exe~
 *.dll
