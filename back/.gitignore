@@ -11,6 +11,12 @@ api
 *.out
 coverage.txt
 
+# Env (no commitear claves ni config local)
+.env
+
+# Database files
+*.db
+
 # Vendor / IDE / Temp
 vendor/
 .idea/

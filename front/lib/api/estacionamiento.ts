@@ -53,7 +53,8 @@ export async function getEstacionamientos(): Promise<Estacionamiento[]> {
   try {
     const data = await httpGet<MapaResponse>(MAPA_ENDPOINT);
     return data.features.map(featureToEstacionamiento);
-  } catch {
+  } catch (err) {
+    console.error("[estacionamiento] Falló GET /estacionamientos/mapa, usando mock:", err);
     return ESTACIONAMIENTOS;
   }
 }

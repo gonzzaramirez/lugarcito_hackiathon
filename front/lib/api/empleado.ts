@@ -4,14 +4,11 @@ import { httpGet, httpPost } from "./client";
 
 const USERS_ENDPOINT = "/users";
 
-/** Default password for employees created from the dashboard form
- *  (the backend requires a password; the form does not collect one). */
-const DEFAULT_PASSWORD = "Password123!";
-
 export interface EmpleadoInput {
   nombre: string;
   apellido: string;
   dni: string;
+  password: string;
   telefono: string;
   email?: string;
   turno: Turno;
@@ -68,7 +65,7 @@ export async function createEmpleado(input: EmpleadoInput): Promise<Empleado> {
       role_id: 2,
       nombre_usuario: input.dni,
       email: input.email || `${input.dni}@empleado.lugarcito.com`,
-      password: DEFAULT_PASSWORD,
+      password: input.password,
       nombre_completo: `${input.nombre} ${input.apellido}`.trim(),
       telefono: input.telefono,
     });

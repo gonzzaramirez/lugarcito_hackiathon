@@ -85,6 +85,6 @@ type RegistroEstacionamiento struct {
 	Estado             string     `json:"estado"`
 	CreatedAt          time.Time  `json:"created_at"`
 	// Datos del tramo en el momento del evento
-	CapacidadOcupada   int        `json:"capacidad_ocupada,omitempty"`
-	CapacidadLibre     int        `json:"capacidad_libre,omitempty"`
+	CapacidadOcupada   int        `json:"capacidad_ocupada"`
+	CapacidadLibre     int        `json:"capacidad_libre"`
 }

@@ -25,9 +25,11 @@ export default function LoginPage() {
       const { usuario } = await login(username, password);
       toast.success(`Bienvenido, ${usuario.nombre_completo}`);
       router.push(usuario.role === "ADMIN" ? "/dashboard" : "/empleado");
-    } catch {
-      toast.warning("Backend no disponible, entrando en modo demo");
-      router.push("/dashboard");
+    } catch (err) {
+      console.error("[login] Error:", err);
+      toast.error(
+        "No se pudo iniciar sesión. Verificá tus credenciales o que el backend esté corriendo en :8080."
+      );
     } finally {
       setIsLoading(false);
     }

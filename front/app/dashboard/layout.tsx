@@ -1,3 +1,4 @@
+import { AuthGuard } from "@/components/auth-guard";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import {
   SidebarInset,
@@ -5,11 +6,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-export default function DashboardLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -22,5 +19,17 @@ export default function DashboardLayout({
         <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <AuthGuard requiredRole="ADMIN">
+      <DashboardShell>{children}</DashboardShell>
+    </AuthGuard>
   );
 }

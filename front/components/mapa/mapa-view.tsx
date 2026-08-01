@@ -18,7 +18,7 @@ import {
   type ParkingStatus,
   type ParkingStatusResponse,
 } from "@/lib/data/parking-status";
-import { getLiveClient } from "@/lib/ws/client";
+import { getLiveClient, type WsStatus } from "@/lib/ws/client";
 import { AvailabilitySummary, countAvailability } from "./availability-summary";
 import { BottomNav } from "./bottom-nav";
 import { BottomSheet, type NearbyItem } from "./bottom-sheet";
@@ -47,6 +47,7 @@ export function MapaView() {
   const [results, setResults] = useState<Awaited<ReturnType<typeof getRecommendations>>["results"]>([]);
   const [selectedSegment, setSelectedSegment] = useState<ParkingSegment | null>(null);
   const [locating, setLocating] = useState(false);
+  const [wsStatus, setWsStatus] = useState<WsStatus>("connecting");
 
   const fetchRecommendations = useCallback(async (lat: number, lon: number) => {
     try {
@@ -147,12 +148,13 @@ export function MapaView() {
         prev.map((segment) => {
           if (segment.id !== message.payload.estacionamientoId) return segment;
 
+          const capacity = segment.capacity ?? 0;
           const available = Math.min(
             Math.max(message.payload.disponibles, 0),
-            segment.capacity
+            capacity
           );
-          const occupied = segment.capacity - available;
-          const pct = segment.capacity > 0 ? (occupied / segment.capacity) * 100 : 0;
+          const occupied = capacity - available;
+          const pct = capacity > 0 ? (occupied / capacity) * 100 : 0;
 
           let status: ParkingStatus;
           if (pct >= 100) status = "FULL";
@@ -164,10 +166,13 @@ export function MapaView() {
       );
     });
 
+    const unsubStatus = client.subscribeStatus(setWsStatus);
+
     client.connect();
 
     return () => {
       unsubscribe();
+      unsubStatus();
       client.disconnect();
     };
   }, []);
@@ -199,40 +204,20 @@ export function MapaView() {
   return (
     <div className="h-dvh bg-[#09090B] text-[#FAFAFA]">
       <div className="relative mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden">
-        {/*     <Button type="button" variant="ghost" size="icon" aria-label="Menú">
-            <Menu className="size-5" />
-          </Button> */}
-        {/*  <h1 className="text-base font-semibold">Estacionamiento</h1> */}
-        {/* <Button type="button" variant="ghost" size="icon" aria-label="Filtros">
-            <SlidersHorizontal className="size-5" />
-          </Button> */}
+        <header className="flex h-10 shrink-0 items-center justify-center gap-2 border-b border-[#27272A]">
+          <span
+            className={`size-2 rounded-full ${
+              wsStatus === "connected" ? "bg-emerald-400" :
+              wsStatus === "offline" ? "bg-red-400" : "bg-amber-400 animate-pulse"
+            }`}
+            title={wsStatus === "connected" ? "Datos en tiempo real" : "Sin conexión al backend"}
+          />
+          <h1 className="text-sm font-medium text-[#A1A1AA]">
+            {wsStatus === "connected" ? "Estacionamiento" : "Modo offline — iniciá el backend"}
+          </h1>
+        </header>
 
-
-        <div className="shrink-0 p-4 pb-3">
-          {/* <div className="relative">
-            <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#A1A1AA]" />
-            <Input
-              type="search"
-              placeholder="¿A dónde vas?"
-              className="h-11 rounded-xl border-[#27272A] bg-[#18181B] pr-12 pl-10 text-[#FAFAFA] placeholder:text-[#A1A1AA] [&::-webkit-search-cancel-button]:hidden"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleLocate}
-              disabled={locating}
-              aria-label="Usar mi ubicación"
-              className="absolute top-1/2 right-1.5 -translate-y-1/2 text-[#3B82F6] hover:bg-[#27272A] hover:text-[#3B82F6]"
-            >
-              {locating ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <LocateFixed className="size-4" />
-              )}
-            </Button>
-          </div> */}
-        </div>
+        <div className="shrink-0 p-4 pb-3"></div>
 
         <AvailabilitySummary counts={counts} />
 

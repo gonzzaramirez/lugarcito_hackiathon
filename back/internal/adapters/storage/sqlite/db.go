@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 const defaultCSVPath = "data/Estacionamiento-medido.csv"
@@ -13,7 +13,7 @@ const defaultCSVPath = "data/Estacionamiento-medido.csv"
 // Open abre (o crea) la base de datos SQLite, ejecuta el schema DDL
 // y carga los datos del CSV si todavía no fueron importados.
 func Open(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dsn+"?_foreign_keys=on")
+	db, err := sql.Open("sqlite", dsn+"?_foreign_keys=on")
 	if err != nil {
 		return nil, fmt.Errorf("sqlite open: %w", err)
 	}

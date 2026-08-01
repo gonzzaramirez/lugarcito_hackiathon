@@ -52,6 +52,7 @@ export default function EmpleadosPage() {
         nombre: values.nombre,
         apellido: values.apellido,
         dni: values.dni,
+        password: values.password,
         telefono: values.telefono,
         email: values.email || undefined,
         turno: values.turno,

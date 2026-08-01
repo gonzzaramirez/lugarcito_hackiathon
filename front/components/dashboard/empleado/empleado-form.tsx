@@ -29,6 +29,7 @@ const empleadoSchema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   apellido: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
   dni: z.string().regex(/^\d{7,8}$/, "El DNI debe tener entre 7 y 8 dígitos"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
   telefono: z.string().regex(/^\d{8,15}$/, "El teléfono debe tener al menos 8 dígitos"),
   email: z
     .union([z.literal(""), z.email("Ingresa un correo electrónico válido")])
@@ -58,6 +59,7 @@ export function EmpleadoForm({ estacionamientos, onSubmit, onCancel }: EmpleadoF
       nombre: "",
       apellido: "",
       dni: "",
+      password: "",
       telefono: "",
       email: "",
       turno: "MAÑANA",
@@ -124,6 +126,20 @@ export function EmpleadoForm({ estacionamientos, onSubmit, onCancel }: EmpleadoF
           </FieldContent>
         </Field>
       </div>
+
+      <Field data-invalid={!!errors.password}>
+        <FieldLabel htmlFor="empleado-password">Contraseña</FieldLabel>
+        <FieldContent>
+          <Input
+            id="empleado-password"
+            type="password"
+            placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+            {...register("password")}
+          />
+          <FieldError errors={[errors.password]} />
+        </FieldContent>
+      </Field>
 
       <Field data-invalid={!!errors.email}>
         <FieldLabel htmlFor="empleado-email">Correo electrónico</FieldLabel>

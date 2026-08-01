@@ -232,7 +232,8 @@ export async function getParkingStatus(): Promise<ParkingStatusResponse> {
   try {
     const data = await httpGet<MapaResponse>(MAPA_ENDPOINT);
     return { updatedAt: new Date().toISOString(), segments: data.features.map(featureToSegment) };
-  } catch {
+  } catch (err) {
+    console.error("[parking-status] Falló GET /estacionamientos/mapa, usando mock:", err);
     return PARKING_STATUS_MOCK;
   }
 }

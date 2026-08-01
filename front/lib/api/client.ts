@@ -22,12 +22,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${API_BASE_URL}${path}`;
+  const res = await fetch(url, {
     ...init,
     headers,
     cache: "no-store",
   });
   if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[API] ${res.status} ${init?.method ?? "GET"} ${url} — ${body}`);
     throw new Error(`HTTP ${res.status} ${init?.method ?? "GET"} ${path}`);
   }
   return (await res.json()) as T;
@@ -39,4 +42,15 @@ export async function httpGet<T>(path: string): Promise<T> {
 
 export async function httpPost<T>(path: string, body: unknown): Promise<T> {
   return request<T>(path, { method: "POST", body: JSON.stringify(body) });
+}
+
+/** Verifica conectividad con el backend. Resuelve true si responde, false si no. */
+export async function checkBackend(): Promise<boolean> {
+  try {
+    const base = API_BASE_URL.replace(/\/api\/v1$/, "");
+    const res = await fetch(`${base}/health`, { cache: "no-store" });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
